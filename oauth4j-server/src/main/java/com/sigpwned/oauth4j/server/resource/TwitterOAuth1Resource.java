@@ -105,8 +105,6 @@ public class TwitterOAuth1Resource {
 
   @Path(AUTHENTICATE)
   public Response authenticate() throws IOException {
-    HttpClient client = HttpClient.newHttpClient();
-
     List<OAuthQueryParameter> queryParameters = new ArrayList<>();
     queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_CALLBACK_NAME, getCallbackUrl()));
 
@@ -118,7 +116,7 @@ public class TwitterOAuth1Resource {
 
     HttpResponse<String> response;
     try {
-      response = client.send(HttpRequests.prepare(signedRequest),
+      response = newHttpClient().send(HttpRequests.prepare(signedRequest),
           BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -144,6 +142,9 @@ public class TwitterOAuth1Resource {
     return Response.temporaryRedirect(URI.create(getTwitterAuthenticateUrl())).build();
   }
 
+  /**
+   * Returns the local URL for the authenticate endpoint
+   */
   public String getAuthenticateUrl() {
     return String.format("%s/%s/%s", getBaseUrl(), BASE_PATH, AUTHENTICATE);
   }
@@ -153,8 +154,6 @@ public class TwitterOAuth1Resource {
       @QueryParam(OAuth.OAUTH_VERIFIER_NAME) String oauthVerifier) throws IOException {
     String oauthTokenSecret =
         getStore().getTokenSecret(oauthToken).orElseThrow(NotFoundException::new);
-
-    HttpClient client = HttpClient.newHttpClient();
 
     List<OAuthQueryParameter> queryParameters = new ArrayList<>();
     queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_TOKEN_NAME, oauthToken));
@@ -168,7 +167,7 @@ public class TwitterOAuth1Resource {
 
     HttpResponse<String> response;
     try {
-      response = client.send(HttpRequests.prepare(signedRequest),
+      response = newHttpClient().send(HttpRequests.prepare(signedRequest),
           BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -192,6 +191,9 @@ public class TwitterOAuth1Resource {
     return getHandler().authenticated(accessToken, accessTokenSecret);
   }
 
+  /**
+   * Returns the local URL for the callback endpoint
+   */
   public String getCallbackUrl() {
     return String.format("%s/%s/%s", getBaseUrl(), BASE_PATH, CALLBACK);
   }
@@ -254,5 +256,14 @@ public class TwitterOAuth1Resource {
    */
   public String getTwitterAccessTokenUrl() {
     return twitterAccessTokenUrl;
+  }
+
+  /**
+   * test hook
+   * 
+   * @return
+   */
+  protected HttpClient newHttpClient() {
+    return HttpClient.newHttpClient();
   }
 }
