@@ -21,8 +21,18 @@ package com.sigpwned.oauth4j.core.util;
 
 import java.util.Comparator;
 import java.util.Objects;
+import com.sigpwned.oauth4j.core.model.OAuthFormParameter;
+import com.sigpwned.oauth4j.core.model.OAuthQueryParameter;
 
 public class Parameter implements Comparable<Parameter> {
+  public static Parameter fromQueryParameter(OAuthQueryParameter p) {
+    return of(p.getKey(), p.getValue());
+  }
+
+  public static Parameter fromFormParameter(OAuthFormParameter p) {
+    return of(p.getKey(), p.getValue());
+  }
+
   public static Parameter of(String key, String value) {
     return new Parameter(key, value);
   }

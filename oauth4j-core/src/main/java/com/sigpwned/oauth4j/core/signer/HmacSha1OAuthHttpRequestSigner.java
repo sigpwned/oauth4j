@@ -49,10 +49,10 @@ public class HmacSha1OAuthHttpRequestSigner implements OAuthHttpRequestSigner {
   protected byte[] computeSignatureBaseString(OAuthHttpRequest request, String oAuthNonce,
       long oAuthTimestamp, String oAuthVersion, String consumerKey, String token) {
     List<Parameter> parameters = new ArrayList<>();
-    parameters.addAll(request.getQueryParameters().stream()
-        .map(fp -> Parameter.of(fp.getKey(), fp.getValue())).collect(toList()));
-    parameters.addAll(request.getFormParameters().stream()
-        .map(fp -> Parameter.of(fp.getKey(), fp.getValue())).collect(toList()));
+    parameters.addAll(
+        request.getQueryParameters().stream().map(Parameter::fromQueryParameter).collect(toList()));
+    parameters.addAll(
+        request.getFormParameters().stream().map(Parameter::fromFormParameter).collect(toList()));
     parameters.add(Parameter.of(OAuth.OAUTH_CONSUMER_KEY_NAME, consumerKey));
     parameters.add(Parameter.of(OAuth.OAUTH_NONCE_NAME, oAuthNonce));
     parameters.add(Parameter.of(OAuth.OAUTH_SIGNATURE_METHOD_NAME, getOAuthSignatureMethod()));
