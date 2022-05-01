@@ -20,6 +20,7 @@
 package com.sigpwned.oauth4j.core.model;
 
 import java.util.Objects;
+import com.sigpwned.oauth4j.core.annotation.Generated;
 
 public class OAuthHttpHeader {
   public static OAuthHttpHeader of(String key, String value) {
@@ -56,11 +57,13 @@ public class OAuthHttpHeader {
   }
 
   @Override
+  @Generated
   public int hashCode() {
     return Objects.hash(name, value);
   }
 
   @Override
+  @Generated
   public boolean equals(Object obj) {
     if (this == obj)
       return true;
@@ -73,6 +76,7 @@ public class OAuthHttpHeader {
   }
 
   @Override
+  @Generated
   public String toString() {
     return "OAuthHttpHeader [key=" + name + ", value=" + value + "]";
   }

@@ -22,6 +22,7 @@ package com.sigpwned.oauth4j.core.model;
 import static java.util.Collections.unmodifiableList;
 import java.util.List;
 import java.util.Objects;
+import com.sigpwned.oauth4j.core.annotation.Generated;
 
 public class OAuthHttpRequest {
   public static final String POST_METHOD = "POST";
@@ -100,11 +101,13 @@ public class OAuthHttpRequest {
   }
 
   @Override
+  @Generated
   public int hashCode() {
     return Objects.hash(formParameters, headers, method, queryParameters, url);
   }
 
   @Override
+  @Generated
   public boolean equals(Object obj) {
     if (this == obj)
       return true;
@@ -119,6 +122,7 @@ public class OAuthHttpRequest {
   }
 
   @Override
+  @Generated
   public String toString() {
     final int maxLen = 10;
     return "OAuthHttpRequest [method=" + method + ", url=" + url + ", headers="

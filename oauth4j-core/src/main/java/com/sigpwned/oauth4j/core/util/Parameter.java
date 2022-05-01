@@ -21,6 +21,7 @@ package com.sigpwned.oauth4j.core.util;
 
 import java.util.Comparator;
 import java.util.Objects;
+import com.sigpwned.oauth4j.core.annotation.Generated;
 import com.sigpwned.oauth4j.core.model.OAuthFormParameter;
 import com.sigpwned.oauth4j.core.model.OAuthQueryParameter;
 
@@ -65,11 +66,13 @@ public class Parameter implements Comparable<Parameter> {
   }
 
   @Override
+  @Generated
   public int hashCode() {
     return Objects.hash(key, value);
   }
 
   @Override
+  @Generated
   public boolean equals(Object obj) {
     if (this == obj)
       return true;

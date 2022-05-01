@@ -43,16 +43,14 @@ public final class HttpRequests {
     for (OAuthHttpHeader header : request.getHeaders())
       result.header(header.getName(), header.getValue());
 
-    switch (request.getMethod()) {
-      case OAuthHttpRequest.POST_METHOD:
-        result =
-            result
-                .POST(BodyPublishers.ofString(request.getFormParameters().stream()
-                    .map(Objects::toString).collect(joining("&")), StandardCharsets.UTF_8))
-                .header("Content-Type", "application/x-ww-form-urlencoded; charset=utf-8");
-        break;
-      default:
-        throw new AssertionError("unrecognized method " + request.getMethod());
+    if (request.getMethod().equalsIgnoreCase(OAuthHttpRequest.POST_METHOD)) {
+      result = result
+          .POST(BodyPublishers.ofString(
+              request.getFormParameters().stream().map(Objects::toString).collect(joining("&")),
+              StandardCharsets.UTF_8))
+          .header("Content-Type", "application/x-ww-form-urlencoded; charset=utf-8");
+    } else {
+      throw new IllegalArgumentException("unrecognized method " + request.getMethod());
     }
 
     return result.build();

@@ -21,6 +21,7 @@ package com.sigpwned.oauth4j.core.model;
 
 import java.util.Objects;
 import java.util.Optional;
+import com.sigpwned.oauth4j.core.annotation.Generated;
 import com.sigpwned.oauth4j.core.util.Encodings;
 
 public class OAuthQueryParameter {
@@ -74,11 +75,13 @@ public class OAuthQueryParameter {
   }
 
   @Override
+  @Generated
   public int hashCode() {
     return Objects.hash(key, value);
   }
 
   @Override
+  @Generated
   public boolean equals(Object obj) {
     if (this == obj)
       return true;

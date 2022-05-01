@@ -101,10 +101,8 @@ public class TwitterOAuth1Resource {
   public Response authenticate() throws IOException {
     HttpClient client = HttpClient.newHttpClient();
 
-    String oauthCallback = String.format("%s/%s/%s", getBaseUrl(), BASE_PATH, CALLBACK);
-
     List<OAuthQueryParameter> queryParameters = new ArrayList<>();
-    queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_CALLBACK_NAME, oauthCallback));
+    queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_CALLBACK_NAME, getCallbackUrl()));
 
     OAuthHttpRequest unsignedRequest = OAuthHttpRequest.of(OAuthHttpRequest.POST_METHOD,
         getTwitterRequestTokenUrl(), queryParameters, emptyList(), emptyList());
