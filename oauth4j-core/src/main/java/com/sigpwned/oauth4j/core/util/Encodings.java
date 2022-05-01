@@ -44,7 +44,7 @@ public final class Encodings {
       } else {
         out.write('%');
         out.write(urlencode((b & 0xF0) >>> 4));
-        out.write(urlencode((b & 0x0F) >>> 0));
+        out.write(urlencode(b & 0x0F));
       }
     }
 
@@ -81,7 +81,7 @@ public final class Encodings {
           throw new IllegalArgumentException("incomplete percent encoding");
         byte upper = urldecode(bs[index++]);
         byte lower = urldecode(bs[index++]);
-        out.write((upper << 4) | (lower << 0));
+        out.write((upper << 4) | lower);
       } else {
         out.write(b);
       }

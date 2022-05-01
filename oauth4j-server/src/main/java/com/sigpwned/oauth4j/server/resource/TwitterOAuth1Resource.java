@@ -117,6 +117,7 @@ public class TwitterOAuth1Resource {
       response = client.send(HttpRequests.prepare(signedRequest),
           BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new InterruptedIOException();
     }
     if (response.statusCode() != HttpURLConnection.HTTP_OK)
@@ -166,6 +167,7 @@ public class TwitterOAuth1Resource {
       response = client.send(HttpRequests.prepare(signedRequest),
           BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new InterruptedIOException();
     }
     if (response.statusCode() != HttpURLConnection.HTTP_OK)
