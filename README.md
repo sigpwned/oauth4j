@@ -49,9 +49,10 @@ dependency:
 
 #### Twitter Implementation
 
-To use the Twitter implementation, web applications should register
-the `TwitterOAuth1Resource` class with the server engine as a new
-resource class. This adds the following new endpoints to the web
+The class `TwitterOAuth1Resource` is a fully-baked implementation of
+the Twitter 1.0a OAuth flow. To use it, web applications should
+register the `TwitterOAuth1Resource` class with the server engine as a
+new resource class. This adds the following new endpoints to the web
 application:
 
 * `${baseUrl}/oauth/twitter/1/authenticate`
