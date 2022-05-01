@@ -81,7 +81,7 @@ public final class Encodings {
           throw new IllegalArgumentException("incomplete percent encoding");
         byte upper = urldecode(bs[index++]);
         byte lower = urldecode(bs[index++]);
-        out.write((upper << 4) | lower);
+        out.write((upper << 4) | (lower << 0));
       } else {
         out.write(b);
       }
