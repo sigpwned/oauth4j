@@ -22,6 +22,11 @@ package com.sigpwned.oauth4j.server;
 import java.io.IOException;
 import java.util.Optional;
 
+/**
+ * Stores and retrieves OAuth tokens during the flow process. A reasonable implementation should
+ * store these in a persistent data store. Records should be stored for at least an hour, but do not
+ * need to be stored forever.
+ */
 public interface TokenStore {
   public void putTokenSecret(String token, String tokenSecret) throws IOException;
 

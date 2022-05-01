@@ -22,10 +22,12 @@ package com.sigpwned.oauth4j.server.resource;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Optional;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import org.junit.After;
@@ -98,6 +100,8 @@ public class TwitterOAuth1ResourceTest {
 
     Response response1 = unit.authenticate();
 
+    verify(store).putTokenSecret(oauthToken, oauthTokenSecret);
+
     assertThat(response1.getStatus(), is(307));
     assertThat(response1.getHeaderString("location"), is(twitterAuthenticateUrl.toString()));
 
@@ -155,6 +159,8 @@ public class TwitterOAuth1ResourceTest {
 
     Response response1 = unit.authenticate();
 
+    verify(store).putTokenSecret(oauthToken, oauthTokenSecret);
+
     assertThat(response1.getStatus(), is(307));
     assertThat(response1.getHeaderString("location"), is(twitterAuthenticateUrl.toString()));
 
@@ -163,5 +169,95 @@ public class TwitterOAuth1ResourceTest {
         is(unit.getCallbackUrl()));
 
     unit.callback("barf", oauthTokenVerifier);
+  }
+
+  /**
+   * We should 500 if we get a weird response from Twitter API
+   */
+  @Test(expected = InternalServerErrorException.class)
+  public void failedRequestTokenTest() throws Exception {
+    final String oauthToken = "foo";
+    final String oauthTokenSecret = "bar";
+    final String consumerKey = "xvz1evFS4wEEPTGEFPHBog";
+    final String consumerSecret = "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw";
+    final String token = "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb";
+    final String tokenSecret = "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE";
+
+    server.enqueue(new MockResponse().setResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR));
+
+    server.start();
+
+    final TokenStore store = mock(TokenStore.class);
+    when(store.getTokenSecret(oauthToken)).thenReturn(Optional.of(oauthTokenSecret));
+
+    final AuthenticatedHandler handler = mock(AuthenticatedHandler.class);
+    when(handler.authenticated(token, tokenSecret)).thenReturn(Response.ok().build());
+
+    final HttpUrl twitterRequestTokenUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_REQUEST_TOKEN_URL);
+    final HttpUrl twitterAuthenticateUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_AUTHENTICATE_URL);
+    final HttpUrl twitterAccessTokenUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_ACCESS_TOKEN_URL);
+
+    TwitterOAuth1Resource unit =
+        new TwitterOAuth1Resource("http://localhost:8080", consumerKey, consumerSecret, store,
+            handler, DefaultOAuthHttpRequestAuthorizer.INSTANCE, twitterRequestTokenUrl.toString(),
+            twitterAuthenticateUrl.toString(), twitterAccessTokenUrl.toString());
+
+    unit.authenticate();
+  }
+
+  /**
+   * We should 500 if we get a weird response from Twitter API
+   */
+  @Test(expected = InternalServerErrorException.class)
+  public void failedAccessTokenTest() throws Exception {
+    final String oauthToken = "foo";
+    final String oauthTokenSecret = "bar";
+    final String oauthTokenVerifier = "verifier";
+    final String consumerKey = "xvz1evFS4wEEPTGEFPHBog";
+    final String consumerSecret = "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw";
+    final String token = "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb";
+    final String tokenSecret = "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE";
+
+    server.enqueue(new MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+        .setBody(String.format("%s&%s", Parameter.of(OAuth.OAUTH_TOKEN_NAME, oauthToken),
+            Parameter.of(OAuth.OAUTH_TOKEN_SECRET_NAME, oauthTokenSecret))));
+
+    server.enqueue(new MockResponse().setResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR));
+
+    server.start();
+
+    final TokenStore store = mock(TokenStore.class);
+    when(store.getTokenSecret(oauthToken)).thenReturn(Optional.of(oauthTokenSecret));
+
+    final AuthenticatedHandler handler = mock(AuthenticatedHandler.class);
+    when(handler.authenticated(token, tokenSecret)).thenReturn(Response.ok().build());
+
+    final HttpUrl twitterRequestTokenUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_REQUEST_TOKEN_URL);
+    final HttpUrl twitterAuthenticateUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_AUTHENTICATE_URL);
+    final HttpUrl twitterAccessTokenUrl = server.url(TwitterOAuth1Resource.BASE_PATH + "/"
+        + TwitterOAuth1Resource.DEFAULT_TWITTER_ACCESS_TOKEN_URL);
+
+    TwitterOAuth1Resource unit =
+        new TwitterOAuth1Resource("http://localhost:8080", consumerKey, consumerSecret, store,
+            handler, DefaultOAuthHttpRequestAuthorizer.INSTANCE, twitterRequestTokenUrl.toString(),
+            twitterAuthenticateUrl.toString(), twitterAccessTokenUrl.toString());
+
+    Response response1 = unit.authenticate();
+
+    verify(store).putTokenSecret(oauthToken, oauthTokenSecret);
+
+    assertThat(response1.getStatus(), is(307));
+    assertThat(response1.getHeaderString("location"), is(twitterAuthenticateUrl.toString()));
+
+    RecordedRequest request1 = server.takeRequest();
+    assertThat(request1.getRequestUrl().queryParameter(OAuth.OAUTH_CALLBACK_NAME),
+        is(unit.getCallbackUrl()));
+
+    unit.callback(oauthToken, oauthTokenVerifier);
   }
 }

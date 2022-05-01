@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
@@ -48,6 +49,9 @@ import com.sigpwned.oauth4j.server.AuthenticatedHandler;
 import com.sigpwned.oauth4j.server.TokenStore;
 import com.sigpwned.oauth4j.server.util.HttpRequests;
 
+/**
+ * A fully-baked implementation of the Twitter OAuth 1.0a flow.
+ */
 @Path(TwitterOAuth1Resource.BASE_PATH)
 public class TwitterOAuth1Resource {
   /* default */ static final String DEFAULT_TWITTER_REQUEST_TOKEN_URL =
@@ -76,8 +80,10 @@ public class TwitterOAuth1Resource {
   private final String twitterAccessTokenUrl;
 
   @Inject
-  public TwitterOAuth1Resource(String baseUrl, String consumerKey, String consumerSecret,
-      TokenStore store, AuthenticatedHandler handler) {
+  public TwitterOAuth1Resource(@Named("oauth4jBaseUrl") String baseUrl,
+      @Named("oauth4jTwitterConsumerKey") String consumerKey,
+      @Named("oauth4jTwitterConsumerSecret") String consumerSecret, TokenStore store,
+      AuthenticatedHandler handler) {
     this(baseUrl, consumerKey, consumerSecret, store, handler,
         DefaultOAuthHttpRequestAuthorizer.INSTANCE, DEFAULT_TWITTER_REQUEST_TOKEN_URL,
         DEFAULT_TWITTER_AUTHENTICATE_URL, DEFAULT_TWITTER_ACCESS_TOKEN_URL);
