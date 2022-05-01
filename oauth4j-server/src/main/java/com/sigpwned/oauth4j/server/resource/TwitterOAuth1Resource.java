@@ -50,9 +50,20 @@ import com.sigpwned.oauth4j.server.util.HttpRequests;
 
 @Path(TwitterOAuth1Resource.BASE_PATH)
 public class TwitterOAuth1Resource {
-  public static final String BASE_PATH = "oauth/twitter/1";
-  public static final String AUTHENTICATE = "authenticate";
-  public static final String CALLBACK = "callback";
+  /* default */ static final String DEFAULT_TWITTER_REQUEST_TOKEN_URL =
+      "https://api.twitter.com/oauth/request_token";
+
+  /* default */ static final String DEFAULT_TWITTER_AUTHENTICATE_URL =
+      "https://api.twitter.com/oauth/authenticate";
+
+  /* default */ static final String DEFAULT_TWITTER_ACCESS_TOKEN_URL =
+      "https://api.twitter.com/oauth/access_token";
+
+  /* default */ static final String BASE_PATH = "oauth/twitter/1";
+
+  /* default */ static final String AUTHENTICATE = "authenticate";
+
+  /* default */ static final String CALLBACK = "callback";
 
   private final String baseUrl;
   private final String consumerKey;
@@ -60,22 +71,30 @@ public class TwitterOAuth1Resource {
   private final TokenStore store;
   private final AuthenticatedHandler handler;
   private final OAuthHttpRequestAuthorizer authorizer;
+  private final String twitterRequestTokenUrl;
+  private final String twitterAuthenticateUrl;
+  private final String twitterAccessTokenUrl;
 
   @Inject
   public TwitterOAuth1Resource(String baseUrl, String consumerKey, String consumerSecret,
       TokenStore store, AuthenticatedHandler handler) {
     this(baseUrl, consumerKey, consumerSecret, store, handler,
-        DefaultOAuthHttpRequestAuthorizer.INSTANCE);
+        DefaultOAuthHttpRequestAuthorizer.INSTANCE, DEFAULT_TWITTER_REQUEST_TOKEN_URL,
+        DEFAULT_TWITTER_AUTHENTICATE_URL, DEFAULT_TWITTER_ACCESS_TOKEN_URL);
   }
 
   /* default */ TwitterOAuth1Resource(String baseUrl, String consumerKey, String consumerSecret,
-      TokenStore store, AuthenticatedHandler handler, OAuthHttpRequestAuthorizer authorizer) {
+      TokenStore store, AuthenticatedHandler handler, OAuthHttpRequestAuthorizer authorizer,
+      String twitterRequestTokenUrl, String twitterAuthenticateUrl, String twitterAccessTokenUrl) {
     this.baseUrl = baseUrl;
     this.consumerKey = consumerKey;
     this.consumerSecret = consumerSecret;
     this.store = store;
     this.handler = handler;
     this.authorizer = authorizer;
+    this.twitterRequestTokenUrl = twitterRequestTokenUrl;
+    this.twitterAuthenticateUrl = twitterAuthenticateUrl;
+    this.twitterAccessTokenUrl = twitterAccessTokenUrl;
   }
 
   @Path(AUTHENTICATE)
@@ -88,10 +107,10 @@ public class TwitterOAuth1Resource {
     queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_CALLBACK_NAME, oauthCallback));
 
     OAuthHttpRequest unsignedRequest = OAuthHttpRequest.of(OAuthHttpRequest.POST_METHOD,
-        "https://api.twitter.com/oauth/request_token", queryParameters, emptyList(), emptyList());
+        getTwitterRequestTokenUrl(), queryParameters, emptyList(), emptyList());
 
     OAuthHttpRequest signedRequest =
-        authorizer.authorize(unsignedRequest, consumerKey, consumerSecret);
+        authorizer.authorize(unsignedRequest, getConsumerKey(), getConsumerSecret());
 
     HttpResponse<String> response;
     try {
@@ -117,8 +136,11 @@ public class TwitterOAuth1Resource {
 
     getStore().putTokenSecret(oauthToken, oauthTokenSecret);
 
-    return Response.temporaryRedirect(URI.create("https://api.twitter.com/oauth/authenticate"))
-        .build();
+    return Response.temporaryRedirect(URI.create(getTwitterAuthenticateUrl())).build();
+  }
+
+  public String getAuthenticateUrl() {
+    return String.format("%s/%s/%s", getBaseUrl(), BASE_PATH, AUTHENTICATE);
   }
 
   @Path(CALLBACK)
@@ -131,13 +153,13 @@ public class TwitterOAuth1Resource {
 
     List<OAuthQueryParameter> queryParameters = new ArrayList<>();
     queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_TOKEN_NAME, oauthToken));
-    queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_VERIFIER_NAME, oauthToken));
+    queryParameters.add(OAuthQueryParameter.of(OAuth.OAUTH_VERIFIER_NAME, oauthVerifier));
 
     OAuthHttpRequest unsignedRequest = OAuthHttpRequest.of(OAuthHttpRequest.POST_METHOD,
-        "https://api.twitter.com/oauth/access_token", queryParameters, emptyList(), emptyList());
+        getTwitterAccessTokenUrl(), queryParameters, emptyList(), emptyList());
 
-    OAuthHttpRequest signedRequest = authorizer.authorize(unsignedRequest, consumerKey,
-        consumerSecret, oauthToken, oauthTokenSecret);
+    OAuthHttpRequest signedRequest = getAuthorizer().authorize(unsignedRequest, getConsumerKey(),
+        getConsumerSecret(), oauthToken, oauthTokenSecret);
 
     HttpResponse<String> response;
     try {
@@ -164,6 +186,10 @@ public class TwitterOAuth1Resource {
     return getHandler().authenticated(accessToken, accessTokenSecret);
   }
 
+  public String getCallbackUrl() {
+    return String.format("%s/%s/%s", getBaseUrl(), BASE_PATH, CALLBACK);
+  }
+
   public String getBaseUrl() {
     return baseUrl;
   }
@@ -180,5 +206,47 @@ public class TwitterOAuth1Resource {
    */
   public AuthenticatedHandler getHandler() {
     return handler;
+  }
+
+  /**
+   * @return the consumerKey
+   */
+  public String getConsumerKey() {
+    return consumerKey;
+  }
+
+  /**
+   * @return the consumerSecret
+   */
+  public String getConsumerSecret() {
+    return consumerSecret;
+  }
+
+  /**
+   * @return the authorizer
+   */
+  public OAuthHttpRequestAuthorizer getAuthorizer() {
+    return authorizer;
+  }
+
+  /**
+   * @return the twitterRequestTokenUrl
+   */
+  public String getTwitterRequestTokenUrl() {
+    return twitterRequestTokenUrl;
+  }
+
+  /**
+   * @return the twitterAuthenticateUrl
+   */
+  public String getTwitterAuthenticateUrl() {
+    return twitterAuthenticateUrl;
+  }
+
+  /**
+   * @return the twitterAccessTokenUrl
+   */
+  public String getTwitterAccessTokenUrl() {
+    return twitterAccessTokenUrl;
   }
 }
