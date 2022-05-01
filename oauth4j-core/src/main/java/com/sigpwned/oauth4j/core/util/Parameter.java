@@ -32,6 +32,10 @@ public class Parameter implements Comparable<Parameter> {
   private final String value;
 
   public Parameter(String key, String value) {
+    if (key == null)
+      throw new NullPointerException();
+    if (value == null)
+      throw new NullPointerException();
     this.key = key;
     this.value = value;
   }
@@ -69,7 +73,7 @@ public class Parameter implements Comparable<Parameter> {
 
   @Override
   public String toString() {
-    return "Parameter [key=" + key + ", value=" + value + "]";
+    return String.format("%s=%s", Encodings.urlencode(getKey()), Encodings.urlencode(getValue()));
   }
 
   private static final Comparator<Parameter> COMPARATOR =

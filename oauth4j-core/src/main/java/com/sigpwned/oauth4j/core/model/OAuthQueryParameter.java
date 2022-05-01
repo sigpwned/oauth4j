@@ -51,6 +51,10 @@ public class OAuthQueryParameter {
   private final String value;
 
   public OAuthQueryParameter(String key, String value) {
+    if (key == null)
+      throw new NullPointerException();
+    if (value == null)
+      throw new NullPointerException();
     this.key = key;
     this.value = value;
   }

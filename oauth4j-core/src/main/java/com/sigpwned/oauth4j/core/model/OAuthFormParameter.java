@@ -51,6 +51,10 @@ public class OAuthFormParameter {
   private final String value;
 
   public OAuthFormParameter(String key, String value) {
+    if (key == null)
+      throw new NullPointerException();
+    if (value == null)
+      throw new NullPointerException();
     this.key = key;
     this.value = value;
   }

@@ -27,6 +27,7 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -56,13 +57,12 @@ public class HmacSha1OAuthHttpRequestSigner implements OAuthHttpRequestSigner {
     parameters.add(Parameter.of(OAuth.OAUTH_NONCE_NAME, oAuthNonce));
     parameters.add(Parameter.of(OAuth.OAUTH_SIGNATURE_METHOD_NAME, getOAuthSignatureMethod()));
     parameters.add(Parameter.of(OAuth.OAUTH_TIMESTAMP, Long.toString(oAuthTimestamp)));
-    parameters.add(Parameter.of(OAuth.OAUTH_TOKEN_NAME, token));
     parameters.add(Parameter.of(OAuth.OAUTH_VERSION_NAME, oAuthVersion));
+    if (token != null)
+      parameters.add(Parameter.of(OAuth.OAUTH_TOKEN_NAME, token));
 
-    String parameterString = parameters
-        .stream().filter(p -> p.getValue() != null).sorted().map(p -> String.format("%s=%s",
-            Encodings.urlencode(p.getKey()), Encodings.urlencode(p.getValue())))
-        .collect(joining("&"));
+    String parameterString =
+        parameters.stream().sorted().map(Objects::toString).collect(joining("&"));
 
     return new StringBuilder().append(request.getMethod().toUpperCase()).append("&")
         .append(Encodings.urlencode(request.getUrl())).append("&")

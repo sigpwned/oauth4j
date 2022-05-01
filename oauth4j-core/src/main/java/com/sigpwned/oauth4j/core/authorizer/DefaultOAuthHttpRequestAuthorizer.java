@@ -25,7 +25,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.stream.Stream;
 import com.sigpwned.oauth4j.core.OAuthHttpRequestAuthorizer;
 import com.sigpwned.oauth4j.core.OAuthHttpRequestSigner;
 import com.sigpwned.oauth4j.core.model.OAuthHttpHeader;
@@ -82,19 +81,22 @@ public class DefaultOAuthHttpRequestAuthorizer implements OAuthHttpRequestAuthor
         consumerSecret, token, tokenSecret);
     String signatureString = Base64.getEncoder().encodeToString(signature);
 
+    List<Parameter> parameters = new ArrayList<>();
+    parameters.add(Parameter.of(OAuth.OAUTH_CONSUMER_KEY_NAME, consumerKey));
+    parameters.add(Parameter.of(OAuth.OAUTH_NONCE_NAME, nonce));
+    parameters.add(Parameter.of(OAuth.OAUTH_SIGNATURE_NAME, signatureString));
+    parameters.add(
+        Parameter.of(OAuth.OAUTH_SIGNATURE_METHOD_NAME, getSigner().getOAuthSignatureMethod()));
+    parameters.add(Parameter.of(OAuth.OAUTH_TIMESTAMP, Long.toString(timestamp)));
+    parameters.add(Parameter.of(OAuth.OAUTH_VERSION_NAME, getOAuthVersion()));
+    if (token != null)
+      parameters.add(Parameter.of(OAuth.OAUTH_TOKEN_NAME, token));
+
     String authorization =
         "OAuth "
-            + Stream
-                .of(Parameter.of(OAuth.OAUTH_CONSUMER_KEY_NAME, consumerKey),
-                    Parameter.of(OAuth.OAUTH_NONCE_NAME, nonce),
-                    Parameter.of(OAuth.OAUTH_SIGNATURE_NAME, signatureString),
-                    Parameter.of(OAuth.OAUTH_SIGNATURE_METHOD_NAME,
-                        signer.getOAuthSignatureMethod()),
-                    Parameter.of(OAuth.OAUTH_TIMESTAMP, Long.toString(timestamp)),
-                    Parameter.of(OAuth.OAUTH_TOKEN_NAME, token),
-                    Parameter.of(OAuth.OAUTH_VERSION_NAME, getOAuthVersion()))
-                .filter(p -> p.getValue() != null).sorted()
-                .map(p -> String.format("%s=\"%s\"", p.getKey(), Encodings.urlencode(p.getValue())))
+            + parameters
+                .stream().sorted().map(p -> String.format("%s=\"%s\"",
+                    Encodings.urlencode(p.getKey()), Encodings.urlencode(p.getValue())))
                 .collect(joining(", "));
 
     List<OAuthHttpHeader> headers = new ArrayList<>();
